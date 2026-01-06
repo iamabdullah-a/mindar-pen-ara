@@ -1,127 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-  />
-
-  <title>Pen AR</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
   <!-- A-Frame -->
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
-  <!-- MindAR -->
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <!-- AR.js -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
-  <!-- Gesture Handler -->
-  <script>
-    AFRAME.registerComponent("gesture-handler", {
-      schema: {
-        minScale: { default: 0.05 },
-        maxScale: { default: 1 }
-      },
+  <title>WebAR Preview</title>
 
-      init: function () {
-        this.initialScale = this.el.object3D.scale.clone();
-        this.scaleFactor = 1;
-        this.isDragging = false;
-
-        this.el.sceneEl.addEventListener("touchstart", this.onTouchStart.bind(this));
-        this.el.sceneEl.addEventListener("touchmove", this.onTouchMove.bind(this));
-        this.el.sceneEl.addEventListener("touchend", this.onTouchEnd.bind(this));
-      },
-
-      onTouchStart: function (event) {
-        if (event.touches.length === 1) {
-          this.isDragging = true;
-          this.lastX = event.touches[0].pageX;
-        }
-
-        if (event.touches.length === 2) {
-          this.startDistance = this.getDistance(event.touches);
-        }
-      },
-
-      onTouchMove: function (event) {
-        if (this.isDragging && event.touches.length === 1) {
-          const deltaX = event.touches[0].pageX - this.lastX;
-          this.el.object3D.rotation.y += deltaX * 0.005;
-          this.lastX = event.touches[0].pageX;
-        }
-
-        if (event.touches.length === 2) {
-          const currentDistance = this.getDistance(event.touches);
-          const scaleChange = currentDistance / this.startDistance;
-          this.scaleFactor *= scaleChange;
-
-          this.scaleFactor = Math.min(
-            this.data.maxScale,
-            Math.max(this.data.minScale, this.scaleFactor)
-          );
-
-          this.el.object3D.scale.set(
-            this.initialScale.x * this.scaleFactor,
-            this.initialScale.y * this.scaleFactor,
-            this.initialScale.z * this.scaleFactor
-          );
-
-          this.startDistance = currentDistance;
-        }
-      },
-
-      onTouchEnd: function () {
-        this.isDragging = false;
-      },
-
-      getDistance: function (touches) {
-        const dx = touches[0].pageX - touches[1].pageX;
-        const dy = touches[0].pageY - touches[1].pageY;
-        return Math.sqrt(dx * dx + dy * dy);
-      }
-    });
-  </script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    .hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+      z-index: 10;
+    }
+  </style>
 </head>
 
 <body>
+
+  <!-- Instruction -->
+  <div class="hint">Point camera at the marker</div>
+
   <a-scene
-    mindar-image="imageTargetSrc: targets.mind; autoStart: true;"
-    color-space="sRGB"
-    renderer="colorManagement: true; physicallyCorrectLights: true"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
     embedded
+    arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
+    renderer="antialias: true; colorManagement: true;"
   >
-    <a-assets>
-      <a-asset-item
-        id="penModel"
-        src="assets/pen_free_download.glb">
-      </a-asset-item>
-    </a-assets>
 
-    <a-camera look-controls="enabled: false"></a-camera>
+    <!-- Marker -->
+    <a-marker preset="hiro">
 
-    <!-- Lighting -->
-    <a-light type="ambient" intensity="0.7"></a-light>
-    <a-light type="directional" position="1 2 1" intensity="0.8"></a-light>
+      <!-- 3D Model -->
+      <a-entity
+        gltf-model="model.glb"
+        position="0 0 0"
+        rotation="-90 0 180"
+        scale="1 1 1"
+        animation="property: rotation; to: -90 360 180; loop: true; dur: 12000; easing: linear;"
+      ></a-entity>
 
-    <!-- Target -->
-    <a-entity mindar-image-target="targetIndex: 0">
-      <a-gltf-model
-        src="#penModel"
-        position="0 0.1 0"
-        scale="0.15 0.15 0.15"
-        rotation="0 180 0"
-        gesture-handler
-        animation="property: rotation;
-                   to: 0 360 0;
-                   loop: true;
-                   dur: 10000;
-                   easing: linear">
-      </a-gltf-model>
-    </a-entity>
+    </a-marker>
+
+    <!-- Camera -->
+    <a-entity camera></a-entity>
+
   </a-scene>
+
 </body>
 </html>
