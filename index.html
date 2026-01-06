@@ -10,20 +10,20 @@
   <!-- AR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
-  <title>WebAR Preview</title>
+  <title>WebAR Product Preview</title>
 
   <style>
-    body { margin: 0; overflow: hidden; }
+    body { margin: 0; overflow: hidden; background: #000; }
     .hint {
       position: fixed;
-      bottom: 20px;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.65);
       color: #fff;
       padding: 10px 16px;
-      border-radius: 8px;
-      font-family: sans-serif;
+      border-radius: 10px;
+      font-family: system-ui, sans-serif;
       font-size: 14px;
       z-index: 10;
     }
@@ -32,8 +32,7 @@
 
 <body>
 
-  <!-- Instruction -->
-  <div class="hint">Point camera at the marker</div>
+  <div class="hint">Point camera at the marker · Drag to rotate · Pinch to zoom</div>
 
   <a-scene
     embedded
@@ -42,16 +41,29 @@
   >
 
     <!-- Marker -->
-    <a-marker preset="hiro">
+    <a-marker
+      preset="hiro"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance="0.01"
+      smoothThreshold="5"
+    >
 
-      <!-- 3D Model -->
+      <!-- Touch controls wrapper -->
       <a-entity
-        gltf-model="model.glb"
-        position="0 0 0"
+        id="model-wrapper"
+        position="0 0.05 0"
         rotation="-90 0 180"
-        scale="1 1 1"
-        animation="property: rotation; to: -90 360 180; loop: true; dur: 12000; easing: linear;"
-      ></a-entity>
+        scale="0.05 0.05 0.05"
+        gesture-handler
+      >
+
+        <!-- Your 3D Model -->
+        <a-entity
+          gltf-model="assets/pen_free_download.glb"
+        ></a-entity>
+
+      </a-entity>
 
     </a-marker>
 
@@ -59,6 +71,43 @@
     <a-entity camera></a-entity>
 
   </a-scene>
+
+  <!-- Gesture Handler (rotate + zoom) -->
+  <script>
+    AFRAME.registerComponent('gesture-handler', {
+      schema: {
+        enabled: { default: true }
+      },
+
+      init: function () {
+        this.handleScale = this.handleScale.bind(this);
+        this.handleRotation = this.handleRotation.bind(this);
+
+        this.initialScale = this.el.object3D.scale.clone();
+        this.scaleFactor = 1;
+      },
+
+      handleScale: function (event) {
+        this.scaleFactor *= event.detail.scale;
+        this.el.object3D.scale.set(
+          this.initialScale.x * this.scaleFactor,
+          this.initialScale.y * this.scaleFactor,
+          this.initialScale.z * this.scaleFactor
+        );
+      },
+
+      handleRotation: function (event) {
+        this.el.object3D.rotation.y += event.detail.positionChange.x * 0.01;
+      },
+
+      tick: function () {
+        if (!this.data.enabled) return;
+
+        this.el.sceneEl.addEventListener('onefingermove', this.handleRotation);
+        this.el.sceneEl.addEventListener('twofingermove', this.handleScale);
+      }
+    });
+  </script>
 
 </body>
 </html>
