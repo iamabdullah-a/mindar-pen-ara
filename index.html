@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ultra Premium WebAR</title>
+  <title>WebAR Hiro + GLB</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
@@ -30,7 +30,7 @@
 <body>
 
 <div id="loader"><div class="spinner"></div></div>
-<div class="hint">Point camera at marker · Drag to rotate · Pinch to zoom</div>
+<div class="hint">Point camera at Hiro marker · Drag to rotate · Pinch to zoom</div>
 
 <a-scene
   vr-mode-ui="enabled:false"
@@ -38,38 +38,22 @@
   arjs="sourceType: webcam; debugUIEnabled:false;"
 >
 
-  <!-- Assets -->
-  <a-assets timeout="60000">
-    <a-asset-item id="model" src="assets/model.glb"></a-asset-item>
-  </a-assets>
+  <!-- Marker: Hiro -->
+  <a-marker preset="hiro" smooth="true" smoothCount="15" smoothTolerance="0.01" smoothThreshold="4">
 
-  <!-- Lighting -->
-  <a-entity light="type: ambient; intensity:0.7"></a-entity>
-  <a-entity light="type: directional; intensity:0.9" position="1 2 1" castShadow></a-entity>
-
-  <!-- Marker -->
-  <a-marker
-    type="pattern"
-    url="assets/marker.patt"
-    size="0.12"
-    smooth="true"
-    smoothCount="15"
-    smoothTolerance="0.01"
-    smoothThreshold="4"
-    id="marker"
-  >
-    <!-- Shadow Plane -->
+    <!-- Shadow plane -->
     <a-plane rotation="-90 0 0" width="0.5" height="0.5" material="color:#000; opacity:0.18; shader:flat" position="0 0.001 0"></a-plane>
 
-    <!-- GLB Model with gestures + auto-scale -->
+    <!-- GLB Model -->
     <a-entity
       id="modelWrapper"
-      gltf-model="#model"
+      gltf-model="model.glb"
       rotation="-90 0 180"
       auto-scale
       gesture-controls
-      shadow="cast: true; receive: false"
+      shadow="cast:true; receive:false"
     ></a-entity>
+
   </a-marker>
 
   <!-- Camera -->
@@ -80,7 +64,7 @@
 <script>
 /* Loader hide */
 const loader = document.getElementById('loader');
-document.querySelector('#model').addEventListener('loaded', () => {
+document.querySelector('#modelWrapper').addEventListener('model-loaded', () => {
   loader.style.display = 'none';
 });
 
@@ -129,7 +113,7 @@ AFRAME.registerComponent('gesture-controls', {
 });
 
 /* Hide hint when marker found */
-document.getElementById('marker').addEventListener('markerFound', () => {
+document.querySelector('a-marker').addEventListener('markerFound', () => {
   document.querySelector('.hint').style.display = 'none';
 });
 </script>
